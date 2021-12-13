@@ -84,4 +84,5 @@ async def update_stats():
 
 
 client.loop.create_task(update_stats())
+utils.get_resources();
 client.run(utils.get_token());
