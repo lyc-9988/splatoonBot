@@ -1,0 +1,6 @@
+# things
+**/logs
+**/__pycache__
+**/resources
+.DS_Store
+token.txt
