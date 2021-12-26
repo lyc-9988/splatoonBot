@@ -53,6 +53,9 @@ class MyClient(discord.Client):
         if message.content == 'private battle':
             await message.channel.send(file=utils.generate_private_battle(8)) # TODO get count input？
 
+        if message.content == 'work':
+            await message.channel.send(file=utils.generate_job_setting()) # TODO get count input？
+
         if client.user.mentioned_in(message):
             await message.channel.send(message.author.display_name + " please don't speak to me without a mask!")
 
@@ -84,5 +87,6 @@ async def update_stats():
 
 
 client.loop.create_task(update_stats())
-utils.get_resources();
+# uncomment to redownload resources
+# utils.get_resources();
 client.run(utils.get_token());

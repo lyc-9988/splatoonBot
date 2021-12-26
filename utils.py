@@ -7,9 +7,14 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-weaponDir = "resources/weaponIcons/"
-privateBattlesDir = "logs/privateBattles/"
-tokenFile = "token.txt"
+weapon_icon_path = "resources/weapon-icons/"
+grizzco_stages_path = "resources/grizzco-stages/"
+pb_history_path = "logs/private-battles-history/"
+gj_history_path = "logs/grizzco-history/"
+token_path = "token.txt"
+
+stage_output_width = 300
+stage_output_height = 160
 
 
 # converts struct_time object into in YY-MM-DD-hour-min-sec string
@@ -19,23 +24,20 @@ def format_gmtime(gmt):
     'm-' + str(gmt.tm_sec) + 's')
     return result
 
-# returns a combined image of random weapons
+# RETURN a combined image of random weapons
 def generate_private_battle(count):
     # get file names
-    random_weapon_list = random.sample(os.listdir(weaponDir), k=count)
+    random_weapon_list = random.sample(os.listdir(weapon_icon_path), k=count)
 
-    img = combine_imgs(random_weapon_list)
+    img = combine_battle_imgs(random_weapon_list) #TODO combine map and add labels
     return discord.File(img);
-    # filename = os.path.join(weaponDir, random_weapon_list[0])
-    # with open(filename, 'rb') as f:
-    #   return discord.File(f);
 
-def combine_imgs(filename_list):
+def combine_battle_imgs(filename_list):
     max_width = 0
     max_height = 0
     images = []
     for filename in filename_list:
-        i = Image.open(os.path.join(weaponDir, filename))
+        i = Image.open(os.path.join(weapon_icon_path, filename))
         images.append(i)
         width, height = i.size
         max_width = max(width, max_width)
@@ -53,15 +55,54 @@ def combine_imgs(filename_list):
             new_img.paste(images[img_count], (x*max_width,y*max_height))
             x += 1
             img_count += 1
-        y -= 1
+        y += 1
 
-    filepath = os.path.join(privateBattlesDir, format_gmtime(time.gmtime())) + ".png"
-    # filepath = 'test.png'
-    if not os.path.exists(privateBattlesDir):
-        os.makedirs(privateBattlesDir)
-    new_img.save(filepath)
+    filepath = save_to_history(pb_history_path, new_img)
     return filepath
 
+
+def generate_job_setting():
+    random_weapon_list = random.sample(os.listdir(weapon_icon_path), k=4)
+    random_grizzco_stage = random.sample(os.listdir(grizzco_stages_path), k=1)
+    img = combine_job_imgs(random_weapon_list, random_grizzco_stage[0]) #TODO combine map and add labels
+    return discord.File(img);
+
+def combine_job_imgs(weapon_list, stage):
+    weapon_side_length = int(stage_output_width/2)
+    images = []
+    # open imgs
+    stage_img = Image.open(os.path.join(grizzco_stages_path, stage))
+    stage_img = stage_img.resize((stage_output_width,stage_output_height),Image.ANTIALIAS)
+    for f in weapon_list:
+        i = Image.open(os.path.join(weapon_icon_path, f))
+        i = i.resize((weapon_side_length, weapon_side_length), Image.ANTIALIAS)
+        images.append(i)
+
+    # total width = stage icon width
+    total_height = int (stage_output_height + weapon_side_length * 2)
+
+    # generate img
+    new_img = Image.new('RGB', (stage_output_width, total_height))
+    new_img.paste(stage_img, (0, 0))
+    img_count = 0
+    for y in range(1, 3):
+        for x in range (0, 2):
+            new_img.paste(images[img_count], (x*weapon_side_length,y*weapon_side_length))
+            x += 1
+            img_count += 1
+        y += 1
+
+    filepath = save_to_history(gj_history_path, new_img)
+    return filepath
+
+# save img to parent_path with current time in filename
+# RETURN filepath of saved image
+def save_to_history(parent_path, img):
+    if not os.path.exists(parent_path):
+        os.makedirs(parent_path)
+    filepath = os.path.join(parent_path, format_gmtime(time.gmtime())) + ".png"
+    img.save(filepath)
+    return filepath
 
 # returns counts of records with given key in specified log file
 def count_records(filename, key):
@@ -69,7 +110,7 @@ def count_records(filename, key):
     # todo
 
 def get_token():
-    with open(tokenFile, 'r', encoding='UTF-8') as file:
+    with open(token_path, 'r', encoding='UTF-8') as file:
         return file.readline().rstrip();
 
 def get_resources():
