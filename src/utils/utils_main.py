@@ -6,12 +6,14 @@ from PIL import Image
 import re
 import requests
 from bs4 import BeautifulSoup
+from utils import IOManager
 
-weapon_icon_path = "resources/weapon-icons/"
-grizzco_stages_path = "resources/grizzco-stages/"
-pb_history_path = "logs/private-battles-history/"
-gj_history_path = "logs/grizzco-history/"
-token_path = "token.txt"
+file_dir = os.path.dirname(os.path.realpath('__file__'))
+weapon_icon_path = os.path.join(file_dir, "resources/weapon-icons/")
+grizzco_stages_path = os.path.join(file_dir, "resources/grizzco-stages/")
+pb_history_path = os.path.join(file_dir, "logs/private-battles-history/")
+gj_history_path = os.path.join(file_dir, "logs/grizzco-history/")
+token_path = os.path.join(file_dir, "token.txt")
 
 stage_output_width = 300
 stage_output_height = 160
@@ -57,7 +59,7 @@ def combine_battle_imgs(filename_list):
             img_count += 1
         y += 1
 
-    filepath = save_to_history(pb_history_path, new_img)
+    filepath = io_manager.save_img_to_history(pb_history_path, new_img)
     return filepath
 
 
@@ -92,17 +94,9 @@ def combine_job_imgs(weapon_list, stage):
             img_count += 1
         y += 1
 
-    filepath = save_to_history(gj_history_path, new_img)
+    filepath = io_manager.save_img_to_history(gj_history_path, new_img)
     return filepath
 
-# save img to parent_path with current time in filename
-# RETURN filepath of saved image
-def save_to_history(parent_path, img):
-    if not os.path.exists(parent_path):
-        os.makedirs(parent_path)
-    filepath = os.path.join(parent_path, format_gmtime(time.gmtime())) + ".png"
-    img.save(filepath)
-    return filepath
 
 # returns counts of records with given key in specified log file
 def count_records(filename, key):

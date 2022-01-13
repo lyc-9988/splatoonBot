@@ -1,7 +1,7 @@
 import discord
 import time
 import asyncio
-import utils
+from utils import utils_main as utils
 import command_handler as ch
 import message_handler as mh
 # from discord.ext import commands
